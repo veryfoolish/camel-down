@@ -1,4 +1,4 @@
-// Cameling Down
+// Camel-Down is an engine for investigating a popular children's board game.
 
 package main
 

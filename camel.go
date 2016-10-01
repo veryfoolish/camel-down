@@ -110,6 +110,14 @@ func (g game) findCamel(c camel) (s int, p int) {
 	return 0, 0
 }
 
+// winner takes a camel and says who won the game. This panic hack is probably something to refactor away soon.
+func (g game) winner(c camel) {
+	cSpace, _ := g.findCamel(c)
+	theWinner := g.gameBoard[cSpace].stack[0]
+	fmt.Print(fmt.Sprintf("\n\n%c won the game! Suck it, everyone else.\n\n", theWinner))
+	panic("Game over!")
+}
+
 // moveStack moves a stack of camels a certain number of spaces on a board, for the selected camel and all camels above it
 func (g game) moveStack(c camel, moveValue int) {
 
@@ -117,6 +125,11 @@ func (g game) moveStack(c camel, moveValue int) {
 	cSpace, cPos := g.findCamel(c)
 
 	fartherPosition := cSpace + moveValue
+
+	// See if we won the game - this is a terrible implementation will want to fix this immediately.
+	if fartherPosition >= len(g.gameBoard) {
+		g.winner(c)
+	}
 
 	// Sign check, relevant for desert tiles
 	nearerPosition := cSpace
@@ -220,7 +233,7 @@ func main() {
 	fmt.Println("The initial number is the space number, the second is the current tile status (desert or oasis). Then the camels on that space.")
 	fmt.Println("If no camels are on a space, and the space doesn't have a desert or oasis tile, I deem it 'uninteresting' and do not display it.")
 	fmt.Println("We're going to start a few legs here, let's see how it goes.")
-	for leg := 1; leg <= 3; leg++ {
+	for leg := 1; leg <= 5; leg++ {
 		fmt.Println("")
 		fmt.Println("")
 		fmt.Println("")

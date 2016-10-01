@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 )
 
 // Tiles are probably either -1 or 0 or 1
@@ -41,18 +40,27 @@ func initializeBoard(boardSize int) board {
 	blankSpace.tile = 0
 	blankSpace.stack = blankStack
 
-	// This is throwing an index out of bounds error for some reason
+	// Now this works to fill up a new board.
 	for i := 0; i < boardSize; i++ {
 		aBoard = append(aBoard, blankSpace)
-		fmt.Println(strconv.Itoa(i) + "nothing yet")
 	}
 
 	return aBoard
 }
 
+func (b board) setTile(tileValue tile, spaceNumber int) {
+	b[spaceNumber].tile = tileValue	
+}
+
 func main() {
 	theBoard := initializeBoard(18)
+	
+	
+	// Everything below is to scratch code for validating functionality...is this "testing?" You be the judge...
+	fmt.Println(theBoard[5])
 
-	fmt.Println(theBoard)
-
+	theBoard.setTile(1, 5)
+	
+	fmt.Println(theBoard[5])
+	
 }

@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+// We're going to be rolling some dice.
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 // Tiles are probably either -1 or 0 or 1
 type tile int
 
@@ -89,10 +94,8 @@ func (r rollList) getCamel(position int) camel {
 // rollMe will roll the die for a specific camel and return the value rolled. Optionally, we could weight the dice...
 func (c camel) rollMe() int {
 
-	rSeed := rand.NewSource(time.Now().UnixNano())
-	rGen := rand.New(rSeed)
+	return rand.Intn(3) + 1
 
-	return rGen.Intn(3) + 1
 }
 
 // findSpace takes a particular camel and returns the space number on the board that that camel is currently on
@@ -159,11 +162,8 @@ func (g game) rollDice() (leftR rollList) {
 
 	startR := g.gameRollList
 
-	rSeed := rand.NewSource(time.Now().UnixNano())
-	rGen := rand.New(rSeed)
-
 	// Need to select a camel at random.
-	camelNum := rGen.Intn(len(startR))
+	camelNum := rand.Intn(len(startR))
 	selectedCamel := startR.getCamel(camelNum)
 
 	// Then need to roll that camel's die.

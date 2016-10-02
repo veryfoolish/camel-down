@@ -12,21 +12,12 @@ func main() {
 	theGame.GameBoard = theGame.InitializeBoard(18)
 	theGame.GameRollList = theGame.InitializeRollList()
 
-	fmt.Println("")
-	fmt.Println("")
-	fmt.Println("Welcome to Camel Down. Camels are Stacked below one another from right to left. Rightmost is bottommost.")
-	fmt.Println("")
+	fmt.Println("\n\nWelcome to Camel Down. Camels are Stacked below one another from right to left. Rightmost is bottommost.\n")
 	fmt.Println("The initial number is the space number, the second is the current Tile status (desert or oasis). Then the camels on that space.")
 	fmt.Println("If no camels are on a space, and the space doesn't have a desert or oasis Tile, I deem it 'uninteresting' and do not display it.")
 	fmt.Println("We're going to start a few legs here, let's see how it goes.")
 	for leg := 1; leg <= 5; leg++ {
-		fmt.Println("")
-		fmt.Println("")
-		fmt.Println("")
-		fmt.Print("Starting leg number ")
-		fmt.Println(leg)
-		fmt.Println("")
-		fmt.Println("")
+		fmt.Printf("\n\n\nStarting leg number %d\n\n\n",leg)
 		i := len(theGame.GameRollList)
 		for i > 0 {
 			theGame.GameRollList = theGame.RollDice()

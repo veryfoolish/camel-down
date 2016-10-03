@@ -9,29 +9,35 @@ import (
 
 // We're going to be rolling some dice.
 func init() {
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(time.Now().UnixNano()) // viva las vegas
 }
 
 // Tiles are probably either -1 or 0 or 1
 type Tile int
 
-// We have five different types of camels in the typical game, but trying to be general now (should have branched probably, will learn git soon enough).
-//No blank camel required in this version, I think?
+// We have five different types of camels in the typical game, but
+// trying to be general now (should have branched probably, will learn
+// git soon enough).  No blank camel required in this version, I
+// think?
 type camel rune
 
-// A Stack has zero to five different camels in a typical game, trying to make this flexible.
+// A Stack has zero to five different camels in a typical game, trying
+// to make this flexible.
 type Stack []camel
 
-// The rollList has some number of camels that have yet to be rolled for this leg of the race.
+// The rollList has some number of camels that have yet to be rolled
+// for this leg of the race.
 type rollList []camel
 
-// A space can have either a Tile or a Stack, or both very temporarily I guess, depending on how resolution works
+// A space can have either a Tile or a Stack, or both very temporarily
+// I guess, depending on how resolution works
 type space struct {
 	Tile
 	Stack
 }
 
-// A board is some number of spaces, I think it's 16 maybe, but that's probably 18 if we include the start and end.
+// A board is some number of spaces, I think it's 16 maybe, but that's
+// probably 18 if we include the start and end.
 type board []space
 
 // A game has a board and a rollList.
@@ -130,7 +136,8 @@ func (g Game) moveStack(c camel, moveValue int) (gameOver int) {
 	newPosition := cSpace + moveValue
 	fartherPosition := newPosition
 
-	// See if we won the game - this is a terrible implementation will want to fix this immediately.
+	// See if we won the game - this is a terrible implementation
+	// will want to fix this immediately.
 	if fartherPosition >= len(g.GameBoard) {
 		gameOver = g.winner(c)
 		if gameOver != 0 {
@@ -138,16 +145,22 @@ func (g Game) moveStack(c camel, moveValue int) (gameOver int) {
 		}
 	}
 
-	// We build up the destination space's Stack. The one starting nearer the start will wind up on top of the one starting farther. Then we put it on the right space.
+	// We build up the destination space's Stack. The one starting
+	// nearer the start will wind up on top of the one starting
+	// farther. Then we put it on the right space.
 	var newStack Stack
 
-	// Sign check, relevant for desert tiles. After a bunch of rewriting, I think it's actually the same code so probably fix this...
+	// Sign check, relevant for desert tiles. After a bunch of
+	// rewriting, I think it's actually the same code so probably
+	// fix this...
 	nearerPosition := cSpace
 	if moveValue < 0 {
 		fartherPosition = cSpace
 		nearerPosition = cSpace + moveValue
 
-		// So if we're going backwards, we want to first add in all the camels from the near position, then the far position.
+		// So if we're going backwards, we want to first add
+		// in all the camels from the near position, then the
+		// far position.
 		for i := 0; i < len(g.GameBoard[nearerPosition].Stack); i++ {
 			if i <= cPos {
 				newStack = append(newStack, g.GameBoard[nearerPosition].Stack[i])
@@ -159,7 +172,8 @@ func (g Game) moveStack(c camel, moveValue int) (gameOver int) {
 		}
 	}
 
-	// Now, if we're going forwards, we build from the top all the ones moving, then the ones we sit on top of.
+	// Now, if we're going forwards, we build from the top all the
+	// ones moving, then the ones we sit on top of.
 	if moveValue > 0 {
 		for i := 0; i < len(g.GameBoard[nearerPosition].Stack); i++ {
 			if i <= cPos {
@@ -179,7 +193,10 @@ func (g Game) moveStack(c camel, moveValue int) (gameOver int) {
 		g.GameBoard[cSpace].Stack = blankStack
 	}
 
-	// Lastly, check if we're going to be on a desert or oasis Tile. If so, move the Stack to that Tile and act as if we are moving from the desert/oasis Tile to the appropriate one next to it
+	// Lastly, check if we're going to be on a desert or oasis
+	// Tile. If so, move the Stack to that Tile and act as if we
+	// are moving from the desert/oasis Tile to the appropriate
+	// one next to it
 	if g.GameBoard[newPosition].Tile != 0 {
 		nSpace, _ := g.findCamel(c)
 		g.moveStack(c, int(g.GameBoard[fartherPosition].Tile))
@@ -188,7 +205,9 @@ func (g Game) moveStack(c camel, moveValue int) (gameOver int) {
 	return gameOver
 }
 
-// rollDice will roll one die for each camel and then move the camel Stacks appropriately. Maybe we should have a camel struct that keeps track of positions.
+// rollDice will roll one die for each camel and then move the camel
+// Stacks appropriately. Maybe we should have a camel struct that
+// keeps track of positions.
 func (g Game) RollDice() (leftR rollList) {
 
 	g.PrettyPrintGame()
@@ -205,21 +224,26 @@ func (g Game) RollDice() (leftR rollList) {
 	fmt.Print(" rolled a ")
 	fmt.Println(rollValue)
 
-	// Then need to resolve the camel positions...
-	// I suppose the first thing to do is figure out which space the camel is on, and then move that  space's Stack by that many spaces.
+	// Then need to resolve the camel positions...  I suppose the
+	// first thing to do is figure out which space the camel is
+	// on, and then move that space's Stack by that many spaces.
 	g.moveStack(selectedCamel, rollValue)
 
-	// Then need to remove the camel from the list of camels yet to roll. This code still isn't 100% clear to me, so I should reread it a few times when more awake.
+	// Then need to remove the camel from the list of camels yet
+	// to roll. This code still isn't 100% clear to me, so I
+	// should reread it a few times when more awake.
 	leftR = append(startR[:camelNum], startR[camelNum+1:]...)
 	fmt.Print("Camels left to roll = ")
 	fmt.Println(len(leftR))
 
-	// Then if there are still camels left to roll, need to do the whole thing over...probably can do all this recursively...
+	// Then if there are still camels left to roll, need to do the
+	// whole thing over...probably can do all this recursively...
 	return leftR
 
 }
 
-// CurrentOrder is a function that prints and returns the current order of the camels
+// CurrentOrder is a function that prints and returns the current
+// order of the camels
 func (g Game) CurrentOrder() (camelOrder []camel) {
 	for i := len(g.GameBoard) - 1; i >= 0; i-- {
 		for j := 0; j < len(g.GameBoard[i].Stack); j++ {
@@ -234,7 +258,8 @@ func (g Game) CurrentOrder() (camelOrder []camel) {
 	return camelOrder
 }
 
-// PrettyPrintGame will display the current status of the game board but in a pretty format.
+// PrettyPrintGame will display the current status of the game board
+// but in a pretty format.
 func (g Game) PrettyPrintGame() {
 	fmt.Println()
 	for i := 0; i < len(g.GameBoard); i++ {

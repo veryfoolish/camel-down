@@ -111,45 +111,62 @@ func (g Game) findCamel(c camel) (s int, p int) {
 	return 0, 0
 }
 
-// winner takes a camel and says who won the game. This panic hack is probably something to refactor away soon.
-func (g Game) winner(c camel) {
+// winner takes a camel and says who won the game.
+func (g Game) winner(c camel) (gameOver int) {
+	gameOver = 1
 	cSpace, _ := g.findCamel(c)
 	theWinner := g.GameBoard[cSpace].Stack[0]
 	fmt.Print(fmt.Sprintf("\n\n%c won the game! Suck it, everyone else.\n\n", theWinner))
-	panic("Game over!")
+	g.CurrentOrder()
+	return gameOver
 }
 
 // moveStack moves a Stack of camels a certain number of spaces on a board, for the selected camel and all camels above it
-func (g Game) moveStack(c camel, moveValue int) {
+func (g Game) moveStack(c camel, moveValue int) (gameOver int) {
 
 	// Find the space the camel is on and position in the Stack for that camel
 	cSpace, cPos := g.findCamel(c)
 
-	fartherPosition := cSpace + moveValue
+	newPosition := cSpace + moveValue
+	fartherPosition := newPosition
 
 	// See if we won the game - this is a terrible implementation will want to fix this immediately.
 	if fartherPosition >= len(g.GameBoard) {
-		g.winner(c)
-	}
-
-	// Sign check, relevant for desert Tiles
-	nearerPosition := cSpace
-	if moveValue < 0 {
-		fartherPosition = cSpace
-		nearerPosition = cSpace + moveValue
+		gameOver = g.winner(c)
+		if gameOver != 0 {
+			return gameOver
+		}
 	}
 
 	// We build up the destination space's Stack. The one starting nearer the start will wind up on top of the one starting farther. Then we put it on the right space.
 	var newStack Stack
 
-	for i := 0; i < len(g.GameBoard[nearerPosition].Stack); i++ {
-		if i <= cPos && moveValue > 0 || moveValue < 0 {
-			newStack = append(newStack, g.GameBoard[nearerPosition].Stack[i])
+	// Sign check, relevant for desert tiles. After a bunch of rewriting, I think it's actually the same code so probably fix this...
+	nearerPosition := cSpace
+	if moveValue < 0 {
+		fartherPosition = cSpace
+		nearerPosition = cSpace + moveValue
+
+		// So if we're going backwards, we want to first add in all the camels from the near position, then the far position.
+		for i := 0; i < len(g.GameBoard[nearerPosition].Stack); i++ {
+			if i <= cPos {
+				newStack = append(newStack, g.GameBoard[nearerPosition].Stack[i])
+			}
+		}
+		fmt.Println(newStack)
+		for j := 0; j < len(g.GameBoard[fartherPosition].Stack); j++ {
+			newStack = append(newStack, g.GameBoard[fartherPosition].Stack[j])
 		}
 	}
 
-	for j := 0; j < len(g.GameBoard[fartherPosition].Stack); j++ {
-		if j >= cPos && moveValue < 0 || moveValue > 0 {
+	// Now, if we're going forwards, we build from the top all the ones moving, then the ones we sit on top of.
+	if moveValue > 0 {
+		for i := 0; i < len(g.GameBoard[nearerPosition].Stack); i++ {
+			if i <= cPos {
+				newStack = append(newStack, g.GameBoard[nearerPosition].Stack[i])
+			}
+		}
+		for j := 0; j < len(g.GameBoard[fartherPosition].Stack); j++ {
 			newStack = append(newStack, g.GameBoard[fartherPosition].Stack[j])
 		}
 	}
@@ -163,10 +180,12 @@ func (g Game) moveStack(c camel, moveValue int) {
 	}
 
 	// Lastly, check if we're going to be on a desert or oasis Tile. If so, move the Stack to that Tile and act as if we are moving from the desert/oasis Tile to the appropriate one next to it
-	if g.GameBoard[fartherPosition].Tile != 0 {
+	if g.GameBoard[newPosition].Tile != 0 {
+		nSpace, _ := g.findCamel(c)
 		g.moveStack(c, int(g.GameBoard[fartherPosition].Tile))
 	}
 
+	return gameOver
 }
 
 // rollDice will roll one die for each camel and then move the camel Stacks appropriately. Maybe we should have a camel struct that keeps track of positions.
@@ -198,6 +217,21 @@ func (g Game) RollDice() (leftR rollList) {
 	// Then if there are still camels left to roll, need to do the whole thing over...probably can do all this recursively...
 	return leftR
 
+}
+
+// CurrentOrder is a function that prints and returns the current order of the camels
+func (g Game) CurrentOrder() (camelOrder []camel) {
+	for i := len(g.GameBoard) - 1; i >= 0; i-- {
+		for j := 0; j < len(g.GameBoard[i].Stack); j++ {
+			camelOrder = append(camelOrder, g.GameBoard[i].Stack[j])
+		}
+	}
+	fmt.Print("The current camel order is: ")
+	for k := 0; k < len(camelOrder); k++ {
+		fmt.Print(fmt.Sprintf("%c", camelOrder[k]))
+	}
+
+	return camelOrder
 }
 
 // PrettyPrintGame will display the current status of the game board but in a pretty format.
